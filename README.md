@@ -474,6 +474,7 @@ whatsapp/
 ├── guia-mantenimiento-whatsapp.txt  # Guía de mantenimiento
 └── estructura de archivos.txt       # Listado de archivos
 ```
+
 ### Archivos Clave del Sistema de Notificaciones
 
 | Archivo | Descripción |
@@ -485,7 +486,6 @@ whatsapp/
 | `server.js` (líneas 100-150) | Filtro de mensajes `status@broadcast` |
 | `public/index.php` (líneas 3400-3650) | Sistema global de notificaciones JavaScript |
 | `public/pages/chats.php` (líneas 2750-2900) | Sistema de actualización inteligente de chats |
-
 
 ## 🚀 Uso del Sistema
 
