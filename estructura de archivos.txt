@@ -1,42 +1,125 @@
 whatsapp.tudominio.com/
-├── public/                      # Archivos públicos
-│   ├── api/                     # APIs REST
-│   │   ├── send.php            # Envío de mensajes
-│   │   ├── contacts.php        # Gestión de contactos
-│   │   ├── chats.php           # Gestión de chats
-│   │   ├── groups.php          # Gestión de grupos
-│   │   ├── broadcast.php       # Difusión masiva
-│   │   ├── templates.php       # Plantillas
-│   │   ├── auto-reply.php      # Respuestas automáticas
-│   │   ├── stats.php           # Estadísticas
-│   │   └── settings.php        # Configuración
-│   ├── assets/                 # Recursos estáticos
-│   │   ├── css/
-│   │   │   └── dashboard.css   # Estilos del dashboard
-│   │   └── js/
-│   │       └── dashboard.js    # JavaScript del dashboard
-│   ├── pages/                  # Páginas del dashboard
-│   │   ├── chats.php          # Vista de chats
-│   │   ├── contacts.php       # Vista de contactos
-│   │   ├── groups.php         # Vista de grupos
-│   │   ├── broadcast.php      # Vista de difusión
-│   │   ├── templates.php      # Vista de plantillas
-│   │   ├── auto-reply.php     # Vista de respuestas auto
-│   │   ├── stats.php          # Vista de estadísticas
-│   │   └── settings.php       # Vista de configuración
-│   ├── index.php              # Dashboard principal
-│   ├── login.php              # Página de login
-│   ├── logout.php             # Cierre de sesión
-│   ├── qr.php                 # Vinculación WhatsApp
-│   └── webhook.php            # Receptor de webhooks
-├── src/                       # Código fuente PHP
-│   ├── Database.php           # Clase de base de datos
-│   └── WhatsAppClient.php     # Cliente WhatsApp (extendido)
-├── logs/                      # Archivos de log
-├── whatsapp-session/          # Sesión de WhatsApp
-├── cron/                      # Scripts programados
-├── server.js                  # Servidor Node.js
-├── package.json              # Dependencias Node.js
-├── composer.json             # Dependencias PHP
-├── .env                      # Variables de entorno
-└── manage.sh                 # Script de gestión
+├── public/
+│   ├── index.php                    # Dashboard principal
+│   ├── login.php                    # Autenticación
+│   ├── logout.php
+│   ├── webhook.php                  # Webhook para mensajes entrantes
+│   ├── logs.php                     # Visor de logs
+│   ├── flyers.php
+│   ├── guia.php
+│   ├── favicon.ico
+│   │
+│   ├── api/                         # APIs REST
+│   │   ├── send.php                 # Envío de mensajes
+│   │   ├── send-media.php           # Envío de multimedia
+│   │   ├── send-gif.php             # Envío de GIFs
+│   │   ├── gif-search.php           # Búsqueda de GIFs
+│   │   ├── chats.php                # Gestión de chats
+│   │   ├── get-chats.php            # Listar chats
+│   │   ├── get-chat-messages.php    # Obtener mensajes de un chat
+│   │   ├── check-unread.php         # ✨ Verificar mensajes no leídos (notificaciones)
+│   │   ├── check-messages.php       # Verificación de mensajes
+│   │   ├── mark-read.php            # Marcar como leído
+│   │   ├── mark-all-read.php        # Marcar todos como leídos
+│   │   ├── contacts.php             # CRUD de contactos
+│   │   ├── get-contact-name.php     # ✨ Obtener nombre de contacto individual
+│   │   ├── get-all-contact-names.php # ✨ Precarga de todos los nombres
+│   │   ├── groups.php               # Gestión de grupos
+│   │   ├── get-groups-status.php    # Estado de grupos
+│   │   ├── group-management-modal.php
+│   │   ├── broadcast.php            # Difusión masiva
+│   │   ├── templates.php            # Plantillas de mensajes
+│   │   ├── auto-reply.php           # Respuestas automáticas
+│   │   ├── procesar-respuesta-automatica.php
+│   │   ├── bot-processor.php        # Procesador del bot
+│   │   ├── get-bot-status.php       # Estado del bot
+│   │   ├── sync-bot-status.php      # Sincronización estado bot
+│   │   ├── horarios.php             # Gestión de horarios
+│   │   ├── verificar-horario.php    # Verificación de horario actual
+│   │   ├── get-mensaje-fuera-horario.php
+│   │   ├── guardar-mensaje-fuera-horario.php
+│   │   ├── media-proxy.php          # Proxy de archivos multimedia
+│   │   ├── stats.php                # Estadísticas
+│   │   ├── dashboard-stats.php      # Datos para gráficos
+│   │   ├── get-logs.php             # Obtener logs
+│   │   ├── settings.php             # Configuración del sistema
+│   │   ├── users.php                # Gestión de usuarios
+│   │   ├── roles.php                # Gestión de roles y permisos
+│   │   ├── profile.php              # Perfil de usuario
+│   │   └── maintenance.php          # Mantenimiento del sistema
+│   │
+│   ├── pages/                       # Páginas del dashboard
+│   │   ├── chats.php                # ✨ Interfaz de chats con notificaciones
+│   │   ├── contacts.php             # Gestión de contactos
+│   │   ├── groups.php               # Gestión de grupos
+│   │   ├── broadcast.php            # Difusión masiva
+│   │   ├── templates.php            # Plantillas
+│   │   ├── auto-reply.php           # Respuestas automáticas
+│   │   ├── status.php               # Estados/Stories
+│   │   ├── stats.php                # Estadísticas y reportes
+│   │   ├── settings.php             # Configuración
+│   │   ├── users.php                # Administración de usuarios
+│   │   ├── qr-connect.php           # Conexión por QR
+│   │   └── session-manager.php      # Gestión de sesiones
+│   │
+│   └── assets/
+│       ├── css/
+│       │   ├── dashboard.css
+│       │   └── dashboard-compact.css
+│       ├── js/
+│       │   ├── dashboard.js
+│       │   └── groups-realtime.js
+│       ├── img/
+│       │   ├── favicon.png
+│       │   ├── whatsapp-icon.png
+│       │   └── badge-icon.png
+│       └── sounds/                  # ✨ Sonidos de notificación
+│           ├── new-message.mp3      # Sonido principal (WhatsApp)
+│           └── chat-message.mp3     # Sonido alternativo
+│
+├── media/                           # Archivos multimedia
+│   └── incoming/                    # Archivos recibidos de WhatsApp
+│
+├── uploads/                         # Archivos subidos
+│   ├── media/
+│   └── temp/
+│
+├── src/                             # Clases PHP
+│   ├── WhatsAppClient.php           # Cliente principal de WhatsApp
+│   ├── Database.php                 # Conexión y queries a MySQL
+│   └── Auth.php                     # Sistema de autenticación y permisos
+│
+├── database/
+│   └── schema.sql                   # Esquema de base de datos
+│
+├── logs/                            # Logs del sistema
+│   ├── combined.log
+│   ├── error.log
+│   └── access.log
+│
+├── scripts/                         # Scripts de utilidad
+│   ├── manage.sh                    # Script principal de gestión
+│   ├── monitor-bot.sh               # Monitoreo del bot
+│   ├── limpieza-completa.sh         # Limpieza del sistema
+│   └── cambiar-numero.sh            # Cambio de número de WhatsApp
+│
+├── backups/                         # Backups automáticos
+│
+├── docs/                            # Documentación adicional
+│
+├── config/                          # Archivos de configuración
+│
+├── whatsapp-session/                # Sesión de WhatsApp (generada automáticamente)
+│
+├── server.js                        # ✨ Servidor Node.js principal
+├── session-manager-api.js           # API de gestión de sesiones
+├── ecosystem.config.js              # Configuración PM2
+├── package.json                     # Dependencias Node.js
+├── package-lock.json
+├── composer.json                    # Dependencias PHP
+├── composer.lock
+├── .env                             # Variables de entorno (NO VERSIONAR)
+├── .gitignore
+├── README.md                        # Este archivo
+├── guia-mantenimiento-whatsapp.txt  # Guía de mantenimiento
+└── estructura de archivos.txt       # Listado de archivos
