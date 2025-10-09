@@ -4,7 +4,7 @@ Sistema profesional de administración y automatización de WhatsApp Web con int
 
 ## Captura
 
-![Captura](Captura.png)
+![Captura](Captura.PNG)
 
 ## 📋 Características
 
