@@ -346,8 +346,6 @@ DESKTOP_NOTIFICATIONS: false
 
 
 ## ⚙️ Estructura de Archivos
-
-```
 whatsapp/
 ├── public/
 │   ├── index.php                    # Dashboard principal
@@ -367,50 +365,30 @@ whatsapp/
 │   │   ├── chats.php                # Gestión de chats
 │   │   ├── get-chats.php            # Listar chats
 │   │   ├── get-chat-messages.php    # Obtener mensajes de un chat
-│   │   ├── check-unread.php         # ✨ Verificar mensajes no leídos (notificaciones)
+│   │   ├── check-unread.php         # ✨ Verificar mensajes no leídos
 │   │   ├── check-messages.php       # Verificación de mensajes
 │   │   ├── mark-read.php            # Marcar como leído
-│   │   ├── mark-all-read.php        # Marcar todos como leídos
 │   │   ├── contacts.php             # CRUD de contactos
-│   │   ├── get-contact-name.php     # ✨ Obtener nombre de contacto individual
-│   │   ├── get-all-contact-names.php # ✨ Precarga de todos los nombres
+│   │   ├── get-contact-name.php     # Obtener nombre de contacto
 │   │   ├── groups.php               # Gestión de grupos
-│   │   ├── get-groups-status.php    # Estado de grupos
-│   │   ├── group-management-modal.php
 │   │   ├── broadcast.php            # Difusión masiva
 │   │   ├── templates.php            # Plantillas de mensajes
 │   │   ├── auto-reply.php           # Respuestas automáticas
-│   │   ├── procesar-respuesta-automatica.php
 │   │   ├── bot-processor.php        # Procesador del bot
-│   │   ├── get-bot-status.php       # Estado del bot
-│   │   ├── sync-bot-status.php      # Sincronización estado bot
-│   │   ├── horarios.php             # Gestión de horarios
-│   │   ├── verificar-horario.php    # Verificación de horario actual
-│   │   ├── get-mensaje-fuera-horario.php
-│   │   ├── guardar-mensaje-fuera-horario.php
-│   │   ├── media-proxy.php          # Proxy de archivos multimedia
 │   │   ├── stats.php                # Estadísticas
-│   │   ├── dashboard-stats.php      # Datos para gráficos
-│   │   ├── get-logs.php             # Obtener logs
-│   │   ├── settings.php             # Configuración del sistema
-│   │   ├── users.php                # Gestión de usuarios
-│   │   ├── roles.php                # Gestión de roles y permisos
-│   │   ├── profile.php              # Perfil de usuario
-│   │   └── maintenance.php          # Mantenimiento del sistema
+│   │   └── settings.php             # Configuración
 │   │
 │   ├── pages/                       # Páginas del dashboard
-│   │   ├── chats.php                # ✨ Interfaz de chats con notificaciones
+│   │   ├── chats.php                # ✨ Interfaz de chats
 │   │   ├── contacts.php             # Gestión de contactos
 │   │   ├── groups.php               # Gestión de grupos
 │   │   ├── broadcast.php            # Difusión masiva
 │   │   ├── templates.php            # Plantillas
 │   │   ├── auto-reply.php           # Respuestas automáticas
 │   │   ├── status.php               # Estados/Stories
-│   │   ├── stats.php                # Estadísticas y reportes
+│   │   ├── stats.php                # Estadísticas
 │   │   ├── settings.php             # Configuración
-│   │   ├── users.php                # Administración de usuarios
-│   │   ├── qr-connect.php           # Conexión por QR
-│   │   └── session-manager.php      # Gestión de sesiones
+│   │   └── users.php                # Administración de usuarios
 │   │
 │   └── assets/
 │       ├── css/
@@ -421,26 +399,25 @@ whatsapp/
 │       │   └── groups-realtime.js
 │       ├── img/
 │       │   ├── favicon.png
-│       │   ├── whatsapp-icon.png
-│       │   └── badge-icon.png
-│       └── sounds/                  # ✨ Sonidos de notificación
-│           ├── new-message.mp3      # Sonido principal (WhatsApp)
-│           └── chat-message.mp3     # Sonido alternativo
+│       │   └── whatsapp-icon.png
+│       └── sounds/                  # 🔊 Notificaciones
+│           ├── new-message.mp3
+│           └── chat-message.mp3
 │
 ├── media/                           # Archivos multimedia
-│   └── incoming/                    # Archivos recibidos de WhatsApp
+│   └── incoming/
 │
 ├── uploads/                         # Archivos subidos
 │   ├── media/
 │   └── temp/
 │
 ├── src/                             # Clases PHP
-│   ├── WhatsAppClient.php           # Cliente principal de WhatsApp
-│   ├── Database.php                 # Conexión y queries a MySQL
-│   └── Auth.php                     # Sistema de autenticación y permisos
+│   ├── WhatsAppClient.php           # Cliente WhatsApp
+│   ├── Database.php                 # Conexión MySQL
+│   └── Auth.php                     # Autenticación
 │
 ├── database/
-│   └── schema.sql                   # Esquema de base de datos
+│   └── schema.sql                   # Esquema de BD
 │
 ├── logs/                            # Logs del sistema
 │   ├── combined.log
@@ -448,32 +425,22 @@ whatsapp/
 │   └── access.log
 │
 ├── scripts/                         # Scripts de utilidad
-│   ├── manage.sh                    # Script principal de gestión
-│   ├── monitor-bot.sh               # Monitoreo del bot
-│   ├── limpieza-completa.sh         # Limpieza del sistema
-│   └── cambiar-numero.sh            # Cambio de número de WhatsApp
+│   ├── manage.sh
+│   ├── monitor-bot.sh
+│   └── limpieza-completa.sh
 │
 ├── backups/                         # Backups automáticos
 │
-├── docs/                            # Documentación adicional
+├── whatsapp-session/                # Sesión de WhatsApp
 │
-├── config/                          # Archivos de configuración
-│
-├── whatsapp-session/                # Sesión de WhatsApp (generada automáticamente)
-│
-├── server.js                        # ✨ Servidor Node.js principal
-├── session-manager-api.js           # API de gestión de sesiones
+├── server.js                        # Servidor Node.js
 ├── ecosystem.config.js              # Configuración PM2
 ├── package.json                     # Dependencias Node.js
-├── package-lock.json
 ├── composer.json                    # Dependencias PHP
-├── composer.lock
-├── .env                             # Variables de entorno (NO VERSIONAR)
-├── .gitignore
-├── README.md                        # Este archivo
-├── guia-mantenimiento-whatsapp.txt  # Guía de mantenimiento
-└── estructura de archivos.txt       # Listado de archivos
-```
+├── .env                             # Variables de entorno
+└── README.md
+
+
 
 ### Archivos Clave del Sistema de Notificaciones
 
