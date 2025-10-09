@@ -2,6 +2,10 @@
 
 Sistema profesional de administración y automatización de WhatsApp Web con interfaz web completa, desarrollado con Node.js, PHP, Redis y MySQL.
 
+## Captura
+
+![Captura](Captura.png)
+
 ## 📋 Características
 
 ### Funcionalidades Core
