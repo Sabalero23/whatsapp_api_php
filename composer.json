@@ -1,0 +1,12 @@
+{
+    "name": "whatsapp/api-system",
+    "description": "Sistema WhatsApp con Predis",
+    "require": {
+        "predis/predis": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "WhatsApp\\": "src/"
+        }
+    }
+}

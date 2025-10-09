@@ -1,0 +1,42 @@
+whatsapp.tudominio.com/
+├── public/                      # Archivos públicos
+│   ├── api/                     # APIs REST
+│   │   ├── send.php            # Envío de mensajes
+│   │   ├── contacts.php        # Gestión de contactos
+│   │   ├── chats.php           # Gestión de chats
+│   │   ├── groups.php          # Gestión de grupos
+│   │   ├── broadcast.php       # Difusión masiva
+│   │   ├── templates.php       # Plantillas
+│   │   ├── auto-reply.php      # Respuestas automáticas
+│   │   ├── stats.php           # Estadísticas
+│   │   └── settings.php        # Configuración
+│   ├── assets/                 # Recursos estáticos
+│   │   ├── css/
+│   │   │   └── dashboard.css   # Estilos del dashboard
+│   │   └── js/
+│   │       └── dashboard.js    # JavaScript del dashboard
+│   ├── pages/                  # Páginas del dashboard
+│   │   ├── chats.php          # Vista de chats
+│   │   ├── contacts.php       # Vista de contactos
+│   │   ├── groups.php         # Vista de grupos
+│   │   ├── broadcast.php      # Vista de difusión
+│   │   ├── templates.php      # Vista de plantillas
+│   │   ├── auto-reply.php     # Vista de respuestas auto
+│   │   ├── stats.php          # Vista de estadísticas
+│   │   └── settings.php       # Vista de configuración
+│   ├── index.php              # Dashboard principal
+│   ├── login.php              # Página de login
+│   ├── logout.php             # Cierre de sesión
+│   ├── qr.php                 # Vinculación WhatsApp
+│   └── webhook.php            # Receptor de webhooks
+├── src/                       # Código fuente PHP
+│   ├── Database.php           # Clase de base de datos
+│   └── WhatsAppClient.php     # Cliente WhatsApp (extendido)
+├── logs/                      # Archivos de log
+├── whatsapp-session/          # Sesión de WhatsApp
+├── cron/                      # Scripts programados
+├── server.js                  # Servidor Node.js
+├── package.json              # Dependencias Node.js
+├── composer.json             # Dependencias PHP
+├── .env                      # Variables de entorno
+└── manage.sh                 # Script de gestión

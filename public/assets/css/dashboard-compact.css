@@ -1,0 +1,643 @@
+/* Agregar al final de dashboard.css o reemplazar las variables root */
+
+:root {
+    --primary: #25D366;
+    --primary-dark: #128C7E;
+    --secondary: #34B7F1;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --success: #28a745;
+    --dark: #1f2937;
+    --gray: #6b7280;
+    --light: #f3f4f6;
+    --white: #ffffff;
+    --border: #e5e7eb;
+    --sidebar-width: 200px; /* Reducido de 260px */
+}
+
+/* Ajustar tamaño base */
+body {
+    font-size: 14px; /* Reducido de 16px implícito */
+}
+
+/* Sidebar más compacto */
+.sidebar-header {
+    padding: 16px; /* Reducido de 20px */
+}
+
+.sidebar-header i {
+    font-size: 1.6em; /* Reducido de 2em */
+}
+
+.sidebar-header h2 {
+    font-size: 1.1em; /* Reducido de 1.2em */
+}
+
+.sidebar-nav {
+    padding: 16px 0; /* Reducido de 20px */
+}
+
+.sidebar-nav a {
+    padding: 10px 16px; /* Reducido de 12px 20px */
+    font-size: 0.95em;
+}
+
+.sidebar-nav a i {
+    width: 18px; /* Reducido de 20px */
+    font-size: 0.95em;
+}
+
+.badge {
+    font-size: 0.7em; /* Reducido de 0.75em */
+    padding: 2px 6px; /* Reducido de 2px 8px */
+}
+
+.sidebar-footer {
+    padding: 16px; /* Reducido de 20px */
+}
+
+.user-info {
+    padding: 8px; /* Reducido de 10px */
+    gap: 8px; /* Reducido de 10px */
+}
+
+.user-info i {
+    font-size: 1.3em; /* Reducido de 1.5em */
+}
+
+/* Header más compacto */
+.content-header {
+    padding: 16px 24px; /* Reducido de 20px 30px */
+}
+
+.content-header h1 {
+    font-size: 1.5em; /* Reducido de 1.75em */
+}
+
+.status-indicator {
+    padding: 6px 14px; /* Reducido de 8px 16px */
+    font-size: 0.85em; /* Reducido de 0.9em */
+}
+
+/* Botones más pequeños */
+.btn {
+    padding: 8px 16px; /* Reducido de 10px 20px */
+    font-size: 0.9em; /* Reducido de 0.95em */
+}
+
+.btn-sm {
+    padding: 5px 10px; /* Reducido de 6px 12px */
+    font-size: 0.8em; /* Reducido de 0.85em */
+}
+
+.btn-icon {
+    padding: 8px; /* Reducido de 10px */
+}
+
+/* Content body más compacto */
+.content-body {
+    padding: 24px; /* Reducido de 30px */
+}
+
+/* Stats cards más pequeñas */
+.stats-grid {
+    gap: 16px; /* Reducido de 20px */
+    margin-bottom: 24px; /* Reducido de 30px */
+}
+
+.stat-card {
+    padding: 20px; /* Reducido de 25px */
+    gap: 16px; /* Reducido de 20px */
+}
+
+.stat-icon {
+    width: 50px; /* Reducido de 60px */
+    height: 50px; /* Reducido de 60px */
+    font-size: 1.3em; /* Reducido de 1.5em */
+}
+
+.stat-content h3 {
+    font-size: 1.6em; /* Reducido de 2em */
+    margin-bottom: 4px; /* Reducido de 5px */
+}
+
+.stat-content p {
+    font-size: 0.9em; /* Reducido de 0.95em */
+}
+
+/* Cards más compactas */
+.section-row {
+    gap: 16px; /* Reducido de 20px */
+    margin-bottom: 24px; /* Reducido de 30px */
+}
+
+.card-header {
+    padding: 16px; /* Reducido de 20px */
+}
+
+.card-header h3 {
+    font-size: 1em; /* Reducido de 1.1em */
+    gap: 8px; /* Reducido de 10px */
+}
+
+.card-body {
+    padding: 16px; /* Reducido de 20px */
+}
+
+/* Messages list más compacta */
+.messages-list {
+    gap: 12px; /* Reducido de 15px */
+}
+
+.message-item {
+    gap: 10px; /* Reducido de 12px */
+    padding: 10px; /* Reducido de 12px */
+}
+
+.message-avatar {
+    width: 36px; /* Reducido de 40px */
+    height: 36px; /* Reducido de 40px */
+    font-size: 1.3em; /* Reducido de 1.5em */
+}
+
+.message-content p {
+    font-size: 0.85em; /* Reducido de 0.9em */
+}
+
+/* Activity list más compacta */
+.activity-list {
+    gap: 12px; /* Reducido de 15px */
+}
+
+.activity-item {
+    gap: 10px; /* Reducido de 12px */
+    padding: 10px; /* Reducido de 12px */
+}
+
+.activity-item p {
+    font-size: 0.85em; /* Reducido de 0.9em */
+}
+
+.activity-item .time {
+    font-size: 0.8em; /* Reducido de 0.85em */
+}
+
+/* Formularios más compactos */
+.form-group {
+    margin-bottom: 16px; /* Reducido de 20px */
+}
+
+.form-group label {
+    margin-bottom: 6px; /* Reducido de 8px */
+    font-size: 0.9em;
+}
+
+.form-control {
+    padding: 8px 12px; /* Reducido de 10px 15px */
+    font-size: 0.9em; /* Reducido de 0.95em */
+}
+
+/* Modales más compactos */
+.modal-header {
+    padding: 16px; /* Reducido de 20px */
+}
+
+.modal-header h3 {
+    font-size: 1.1em; /* Reducido de 1.2em */
+}
+
+.modal-body {
+    padding: 16px; /* Reducido de 20px */
+}
+
+.modal-footer {
+    padding: 16px; /* Reducido de 20px */
+}
+
+/* Tabla más compacta */
+.table th,
+.table td {
+    padding: 10px; /* Reducido de 12px */
+    font-size: 0.9em;
+}
+
+/* Chats container más compacto */
+.chats-container {
+    height: 70vh; /* Reducido de 70vh */
+    max-height: 680px; /* Reducido de 750px */
+}
+
+.chats-search {
+    padding: 12px; /* Reducido de 15px */
+}
+
+.chats-search input {
+    padding: 8px 12px; /* Reducido de 10px 15px */
+    font-size: 0.9em; /* Reducido de 0.95em */
+}
+
+.chat-item {
+    padding: 12px; /* Reducido de 15px */
+    gap: 10px; /* Reducido de 12px */
+}
+
+.chat-avatar {
+    width: 40px; /* Reducido de 45px */
+    height: 40px; /* Reducido de 45px */
+    font-size: 1.2em; /* Reducido de 1.3em */
+}
+
+.chat-name {
+    font-size: 0.9em; /* Reducido de 0.95em */
+}
+
+.chat-preview {
+    font-size: 0.8em; /* Reducido de 0.85em */
+}
+
+.chat-header-bar {
+    padding: 12px 16px; /* Reducido de 15px 20px */
+}
+
+.messages-container {
+    padding: 16px; /* Reducido de 20px */
+}
+
+.message-bubble {
+    margin-bottom: 10px; /* Reducido de 12px */
+}
+
+.bubble-content {
+    padding: 8px 12px; /* Reducido de 10px 14px */
+    font-size: 0.9em;
+}
+
+.message-time {
+    font-size: 0.65em; /* Reducido de 0.7em */
+}
+
+.message-input-container {
+    padding: 10px 12px; /* Reducido de 12px 15px */
+}
+
+.message-input {
+    padding: 8px 12px; /* Reducido de 10px 14px */
+    font-size: 0.9em; /* Reducido de 0.95em */
+}
+
+.btn-send {
+    width: 38px; /* Reducido de 42px */
+    height: 38px; /* Reducido de 42px */
+    font-size: 1em; /* Reducido de 1.1em */
+}
+
+/* Ajustar media queries */
+@media (max-width: 768px) {
+    .sidebar {
+        width: var(--sidebar-width);
+    }
+    
+    .content-header {
+        padding-left: 60px; /* Ajustado para el botón de menú */
+    }
+    
+    .content-body {
+        padding: 16px; /* Reducido en móvil */
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+/* Menu toggle más pequeño */
+.menu-toggle {
+    width: 40px; /* Reducido de 45px */
+    height: 40px; /* Reducido de 45px */
+    top: 12px; /* Reducido de 15px */
+    left: 12px; /* Reducido de 15px */
+}
+
+.menu-toggle i {
+    font-size: 1.2em; /* Reducido de 1.3em */
+}
+
+/* Modal de perfil más compacto */
+.modal-profile .modal-header {
+    padding: 16px 20px; /* Reducido de 20px 25px */
+}
+
+.modal-profile .modal-body {
+    padding: 20px; /* Reducido de 25px */
+}
+
+.modal-profile .modal-footer {
+    padding: 12px 20px; /* Reducido de 15px 25px */
+}
+
+.profile-section {
+    margin-bottom: 24px; /* Reducido de 30px */
+    padding-bottom: 20px; /* Reducido de 25px */
+}
+
+.profile-section h4 {
+    margin-bottom: 16px; /* Reducido de 20px */
+    font-size: 1em; /* Reducido de 1.1em */
+}
+
+/* Empty state más compacto */
+.empty-state {
+    padding: 32px; /* Reducido de 40px */
+}
+
+.empty-chat i {
+    font-size: 3em; /* Reducido de 3.5em */
+    margin-bottom: 12px; /* Reducido de 15px */
+}
+
+/* Scrollbar personalizado profesional - Agregar al final de dashboard-compact.css */
+
+/* ============================================
+   SCROLLBAR WEBKIT (Chrome, Safari, Edge)
+   ============================================ */
+
+/* Scrollbar general */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+/* Scrollbar para sidebar (tema oscuro) */
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.sidebar::-webkit-scrollbar-thumb:active {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Scrollbar para lista de chats */
+.chats-list::-webkit-scrollbar,
+.messages-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chats-list::-webkit-scrollbar-thumb,
+.messages-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+
+.chats-list::-webkit-scrollbar-thumb:hover,
+.messages-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Scrollbar para modales */
+.modal-content::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover,
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* ============================================
+   SCROLLBAR FIREFOX
+   ============================================ */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.sidebar {
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.chats-list,
+.messages-container {
+    scrollbar-color: var(--primary) transparent;
+}
+
+.modal-content,
+.modal-body {
+    scrollbar-color: var(--primary) transparent;
+}
+
+/* ============================================
+   EFECTOS ADICIONALES
+   ============================================ */
+
+/* Smooth scrolling para toda la página */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Ocultar scrollbar al principio, mostrar al hover */
+.sidebar-nav,
+.chats-list,
+.messages-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb,
+.chats-list::-webkit-scrollbar-thumb,
+.messages-container::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+.sidebar-nav:hover::-webkit-scrollbar-thumb,
+.chats-list:hover::-webkit-scrollbar-thumb,
+.messages-container:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-nav:hover::-webkit-scrollbar-thumb:hover,
+.chats-list:hover::-webkit-scrollbar-thumb:hover,
+.messages-container:hover::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Animación suave del scroll */
+.chats-list,
+.messages-container,
+.sidebar-nav {
+    scroll-behavior: smooth;
+}
+
+/* Indicador visual de scroll */
+.chats-list,
+.messages-container {
+    position: relative;
+}
+
+/* Sombra superior cuando hay scroll */
+.chats-list::before,
+.messages-container::before {
+    content: '';
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to bottom, 
+        rgba(0, 0, 0, 0.05) 0%, 
+        transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.chats-list.has-scroll::before,
+.messages-container.has-scroll::before {
+    opacity: 1;
+}
+
+/* Sombra inferior cuando hay scroll */
+.chats-list::after,
+.messages-container::after {
+    content: '';
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to top, 
+        rgba(0, 0, 0, 0.05) 0%, 
+        transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.chats-list.can-scroll-down::after,
+.messages-container.can-scroll-down::after {
+    opacity: 1;
+}
+
+/* Scrollbar más visible en tablas */
+.table-container::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--gray);
+    background-clip: padding-box;
+}
+
+/* Scrollbar horizontal */
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Scrollbar para inputs de texto */
+textarea::-webkit-scrollbar {
+    width: 6px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* ============================================
+   OPTIMIZACIÓN PARA MÓVILES
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Scrollbar más delgado en móvil */
+    ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+    
+    .chats-list::-webkit-scrollbar,
+    .messages-container::-webkit-scrollbar {
+        width: 3px;
+    }
+    
+    /* Ocultar scrollbar en móvil por defecto */
+    * {
+        scrollbar-width: none;
+    }
+    
+    *::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* Mostrar solo al tocar/arrastrar */
+    .scrolling::-webkit-scrollbar {
+        display: block;
+    }
+    
+    .scrolling {
+        scrollbar-width: thin;
+    }
+}
+
+/* ============================================
+   ANIMACIONES DE SCROLL
+   ============================================ */
+
+@keyframes fadeInScroll {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Aplicar animación a elementos que entran en viewport */
+.animate-on-scroll {
+    animation: fadeInScroll 0.6s ease-out forwards;
+}
