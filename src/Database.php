@@ -16,7 +16,7 @@ class Database
         $host = $config['DB_HOST'] ?? '127.0.0.1';
         $dbname = $config['DB_NAME'] ?? 'whatsapp_db';
         $username = $config['DB_USER'] ?? 'whatsapp_db';
-        $password = $config['DB_PASSWORD'] ?? 'b2Byp8e3WwaipXJ4';
+        $password = $config['DB_PASSWORD'] ?? 'DBPASS';
         
         try {
             $this->pdo = new PDO(
