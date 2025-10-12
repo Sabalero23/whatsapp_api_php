@@ -545,30 +545,123 @@ const processOutgoingQueue = async () => {
 const sendMessage = async (messageData) => {
     try {
         const { to, message, media, messageId } = messageData;
-        const chatId = to.includes('@') ? to : `${to}@c.us`;
-        let result;
         
-        if (media) {
-            const mediaFile = MessageMedia.fromFilePath(media.path);
-            result = await client.sendMessage(chatId, mediaFile, { caption: message });
-        } else {
-            result = await client.sendMessage(chatId, message);
+        // Determinar si es grupo
+        const isGroup = to.includes('@g.us');
+        
+        logger.info(`📤 Enviando mensaje:`, {
+            to: to,
+            isGroup: isGroup,
+            messageId: messageId,
+            messageLength: message?.length || 0
+        });
+        
+        // Asegurar formato correcto
+        let chatId = to;
+        if (!chatId.includes('@')) {
+            chatId = chatId + (isGroup ? '@g.us' : '@c.us');
         }
         
-        await redis.set(
-            `whatsapp:result:${messageId}`,
-            JSON.stringify({ success: true, messageId: result.id._serialized }),
-            'EX', 300
-        );
-        logger.info(`Mensaje enviado a ${to}`);
-        return result;
+        let result;
+        
+        try {
+            // Obtener el chat primero
+            const chat = await client.getChatById(chatId);
+            
+            if (!chat) {
+                throw new Error(`Chat no encontrado: ${chatId}`);
+            }
+            
+            logger.info(`✅ Chat encontrado:`, {
+                id: chat.id._serialized,
+                name: chat.name,
+                isGroup: chat.isGroup,
+                participants: chat.participants?.length || 0
+            });
+            
+            // Enviar mensaje
+            if (media) {
+                const mediaFile = MessageMedia.fromFilePath(media.path);
+                result = await chat.sendMessage(mediaFile, { caption: message });
+            } else {
+                result = await chat.sendMessage(message);
+            }
+            
+            if (!result) {
+                throw new Error('sendMessage retornó null');
+            }
+            
+            logger.info(`✅ Mensaje enviado exitosamente:`, {
+                messageId: result.id._serialized,
+                timestamp: result.timestamp,
+                to: chatId,
+                isGroup: isGroup
+            });
+            
+            // Guardar resultado en Redis
+            await redis.set(
+                `whatsapp:result:${messageId}`,
+                JSON.stringify({ 
+                    success: true, 
+                    messageId: result.id._serialized,
+                    timestamp: result.timestamp 
+                }),
+                'EX', 300
+            );
+            
+            return result;
+            
+        } catch (sendError) {
+            logger.error(`❌ Error al enviar mensaje:`, {
+                error: sendError.message,
+                chatId: chatId,
+                isGroup: isGroup,
+                stack: sendError.stack
+            });
+            
+            // Intentar método alternativo: client.sendMessage directo
+            logger.info('🔄 Intentando método alternativo...');
+            
+            try {
+                if (media) {
+                    const mediaFile = MessageMedia.fromFilePath(media.path);
+                    result = await client.sendMessage(chatId, mediaFile, { caption: message });
+                } else {
+                    result = await client.sendMessage(chatId, message);
+                }
+                
+                logger.info('✅ Mensaje enviado con método alternativo');
+                
+                await redis.set(
+                    `whatsapp:result:${messageId}`,
+                    JSON.stringify({ 
+                        success: true, 
+                        messageId: result.id._serialized,
+                        method: 'alternative'
+                    }),
+                    'EX', 300
+                );
+                
+                return result;
+                
+            } catch (altError) {
+                logger.error('❌ Método alternativo también falló:', altError.message);
+                throw sendError; // Lanzar el error original
+            }
+        }
+        
     } catch (error) {
-        logger.error('Error enviando mensaje:', error);
+        logger.error('❌ Error crítico enviando mensaje:', error);
+        
         await redis.set(
             `whatsapp:result:${messageData.messageId}`,
-            JSON.stringify({ success: false, error: error.message }),
+            JSON.stringify({ 
+                success: false, 
+                error: error.message 
+            }),
             'EX', 300
         );
+        
         throw error;
     }
 };

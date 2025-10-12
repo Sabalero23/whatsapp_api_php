@@ -639,9 +639,22 @@ public function markAllAsRead(): array
     // ==================== UTILIDADES ====================
 
     private function formatNumber(string $number): string
-    {
-        return preg_replace('/[^0-9]/', '', $number);
+{
+    // Si ya tiene @ (es un ID completo de chat o grupo), devolverlo tal cual
+    if (strpos($number, '@') !== false) {
+        return $number;
     }
+    
+    // Si contiene un guion, es un ID de grupo sin @g.us
+    // Formato de grupo: XXXXXXXXXX-XXXXXXXXXX
+    if (strpos($number, '-') !== false) {
+        // Es un grupo, no tocar el guion
+        return $number;
+    }
+    
+    // Es un número de teléfono normal, limpiar solo caracteres especiales
+    return preg_replace('/[^0-9]/', '', $number);
+}
 
     private function makeRequest(string $method, string $endpoint, ?array $data = null): array
     {

@@ -63,43 +63,30 @@ try {
     error_log("Mensaje: $message");
     
     $isGroup = strpos($to, '@g.us') !== false;
-    
-    // ✅ CRÍTICO: Obtener timestamp actual
     $currentTimestamp = time();
     
-    if ($isGroup) {
-        error_log('ENVIANDO MENSAJE DIRECTO A GRUPO');
-        
-        $result = $whatsapp->sendMessage($to, $message);
-        
-        error_log('RESULTADO ENVÍO DIRECTO: ' . json_encode($result));
-        
-        // ✅ Guardar con timestamp
-        $db->insert('mensajes_salientes', [
-            'numero_destinatario' => str_replace(['@c.us', '@g.us'], '', $to),
-            'mensaje' => $message,
-            'timestamp' => $currentTimestamp,
-            'estado' => 'enviado',
-            'fecha_envio' => date('Y-m-d H:i:s', $currentTimestamp)
-        ]);
-        
-    } else {
-        error_log('ENCOLANDO MENSAJE PARA CHAT INDIVIDUAL');
-        
-        $messageId = $whatsapp->queueMessage($to, $message, $media);
-        
-        // ✅ Guardar con timestamp
-        $db->insert('mensajes_salientes', [
-            'mensaje_id' => $messageId,
-            'numero_destinatario' => str_replace(['@c.us', '@g.us'], '', $to),
-            'mensaje' => $message,
-            'timestamp' => $currentTimestamp,
-            'estado' => 'pendiente',
-            'fecha_envio' => date('Y-m-d H:i:s', $currentTimestamp)
-        ]);
-        
-        $result = ['success' => true, 'messageId' => $messageId];
+    // ✅ Para CHATS: usar queueMessage (funciona bien)
+    // ✅ Para GRUPOS: también usar queueMessage
+    error_log($isGroup ? '👥 Enviando a GRUPO' : '👤 Enviando a CHAT');
+    
+    $messageId = $whatsapp->queueMessage($to, $message, $media);
+    
+    if (!$messageId) {
+        throw new Exception('No se pudo encolar el mensaje');
     }
+    
+    error_log("✅ Mensaje encolado con ID: $messageId");
+    
+    // ✅ Guardar en BD
+    $db->insert('mensajes_salientes', [
+        'mensaje_id' => $messageId,
+        'numero_destinatario' => str_replace(['@c.us', '@g.us'], '', $to),
+        'mensaje' => $message,
+        'timestamp' => $currentTimestamp,
+        'estado' => 'pendiente',
+        'tipo' => $isGroup ? 'group' : 'chat',
+        'fecha_envio' => date('Y-m-d H:i:s', $currentTimestamp)
+    ]);
     
     // Registrar log
     $db->insert('logs', [
@@ -125,17 +112,18 @@ try {
         ]);
     }
     
-    error_log('=== ÉXITO: Mensaje procesado correctamente ===');
+    error_log('=== ✅ ÉXITO ===');
     
     echo json_encode([
         'success' => true,
-        'messageId' => $result['messageId'] ?? null,
+        'messageId' => $messageId,
         'timestamp' => $currentTimestamp,
-        'message' => $isGroup ? 'Mensaje enviado a grupo' : 'Mensaje encolado correctamente'
+        'isGroup' => $isGroup,
+        'message' => 'Mensaje encolado correctamente'
     ]);
     
 } catch (Exception $e) {
-    error_log('EXCEPCIÓN: ' . $e->getMessage());
+    error_log('❌ EXCEPCIÓN: ' . $e->getMessage());
     error_log('Stack trace: ' . $e->getTraceAsString());
     
     echo json_encode([
