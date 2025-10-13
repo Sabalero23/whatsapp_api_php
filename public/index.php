@@ -1258,12 +1258,10 @@ function refreshChart() {
     <script src="assets/js/dashboard.js"></script>
     
     
-    
-
 <script>
 // Configuración global
 const GLOBAL_CONFIG = {
-    CHECK_INTERVAL: 5000, // Cada 5 segundos
+    CHECK_INTERVAL: 5000,
     SOUND_ENABLED: true,
     DESKTOP_NOTIFICATIONS: true
 };
@@ -1272,29 +1270,24 @@ let globalState = {
     lastUnreadCounts: new Map(),
     isChecking: false,
     notificationsEnabled: false,
-    totalUnread: 0
+    totalUnreadChats: 0,
+    totalUnreadGroups: 0
 };
 
 // ============ INICIALIZAR NOTIFICACIONES ============
 
 function initGlobalNotifications() {
-    // Solicitar permisos de notificación
     if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission().then(permission => {
             globalState.notificationsEnabled = (permission === 'granted');
-            console.log('📢 Notificaciones:', globalState.notificationsEnabled ? 'Habilitadas' : 'Deshabilitadas');
+            console.log('🔔 Notificaciones:', globalState.notificationsEnabled ? 'Habilitadas' : 'Deshabilitadas');
         });
     } else if (Notification.permission === 'granted') {
         globalState.notificationsEnabled = true;
     }
     
-    // Cargar contadores iniciales
     initializeGlobalUnreadCache();
-    
-    // Iniciar verificación periódica
     setInterval(checkForNewMessages, GLOBAL_CONFIG.CHECK_INTERVAL);
-    
-    // Verificar inmediatamente
     setTimeout(checkForNewMessages, 2000);
     
     console.log('✅ Sistema de notificaciones global iniciado');
@@ -1303,18 +1296,17 @@ function initGlobalNotifications() {
 // ============ CACHE DE CONTADORES ============
 
 function initializeGlobalUnreadCache() {
-    // Leer del badge del sidebar si existe
-    const badge = document.querySelector('.sidebar-nav a[href*="chats"] .badge');
-    if (badge) {
-        globalState.totalUnread = parseInt(badge.textContent) || 0;
+    const chatsBadge = document.querySelector('.sidebar-nav a[href*="page=chats"] .badge');
+    if (chatsBadge) {
+        globalState.totalUnreadChats = parseInt(chatsBadge.textContent) || 0;
     }
     
-    // Si estamos en página de chats, cargar contadores individuales
-    document.querySelectorAll('.chat-item').forEach(item => {
-        const chatId = item.dataset.chatId;
-        const unread = parseInt(item.dataset.unread) || 0;
-        globalState.lastUnreadCounts.set(chatId, unread);
-    });
+    const groupsBadge = document.querySelector('.sidebar-nav a[href*="page=groups"] .badge');
+    if (groupsBadge) {
+        globalState.totalUnreadGroups = parseInt(groupsBadge.textContent) || 0;
+    }
+    
+    console.log('📊 Contadores iniciales - Chats:', globalState.totalUnreadChats, 'Grupos:', globalState.totalUnreadGroups);
 }
 
 // ============ VERIFICAR MENSAJES NUEVOS ============
@@ -1332,12 +1324,9 @@ async function checkForNewMessages() {
             return;
         }
         
-        // Verificar que la respuesta sea JSON válido
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             console.error('❌ Respuesta no es JSON:', contentType);
-            const text = await response.text();
-            console.error('Contenido:', text.substring(0, 200));
             return;
         }
         
@@ -1351,12 +1340,6 @@ async function checkForNewMessages() {
         
     } catch (error) {
         console.error('❌ Error en verificación global:', error.message);
-        
-        // Si es error de parsing JSON, mostrar más detalles
-        if (error instanceof SyntaxError) {
-            console.error('💥 El servidor devolvió HTML en lugar de JSON');
-            console.error('Verifica que el archivo api/check-unread.php no tenga errores de PHP');
-        }
     } finally {
         globalState.isChecking = false;
     }
@@ -1365,117 +1348,142 @@ async function checkForNewMessages() {
 // ============ PROCESAR CAMBIOS ============
 
 function processUnreadChanges(data) {
-    const newTotalUnread = data.totalUnread || 0;
     const chatsWithUnread = data.chats || [];
     
-    // Verificar si hay mensajes nuevos
-    if (newTotalUnread > globalState.totalUnread) {
-        const newMessages = newTotalUnread - globalState.totalUnread;
+    let newUnreadChats = 0;
+    let newUnreadGroups = 0;
+    
+    const newMessagesInChats = [];
+    const newMessagesInGroups = [];
+    
+    chatsWithUnread.forEach(chat => {
+        const isGroup = chat.id.includes('@g.us');
+        const previousCount = globalState.lastUnreadCounts.get(chat.id) || 0;
+        const currentCount = chat.unreadCount || 0;
         
-        // Encontrar qué chat tiene mensajes nuevos
-        let newChatName = '';
-        chatsWithUnread.forEach(chat => {
-            const previousCount = globalState.lastUnreadCounts.get(chat.id) || 0;
-            if (chat.unreadCount > previousCount) {
-                newChatName = chat.name;
-                globalState.lastUnreadCounts.set(chat.id, chat.unreadCount);
+        if (isGroup) {
+            newUnreadGroups += currentCount;
+            
+            if (currentCount > previousCount) {
+                const newCount = currentCount - previousCount;
+                newMessagesInGroups.push({
+                    name: chat.name,
+                    count: newCount
+                });
             }
+        } else {
+            newUnreadChats += currentCount;
+            
+            if (currentCount > previousCount) {
+                const newCount = currentCount - previousCount;
+                newMessagesInChats.push({
+                    name: chat.name,
+                    count: newCount
+                });
+            }
+        }
+        
+        globalState.lastUnreadCounts.set(chat.id, currentCount);
+    });
+    
+    console.log('📊 Nuevos contadores - Chats:', newUnreadChats, 'Grupos:', newUnreadGroups);
+    
+    if (newMessagesInChats.length > 0) {
+        newMessagesInChats.forEach(item => {
+            showGlobalNotification(item.name, item.count, 'chat');
         });
         
-        // Mostrar notificación
-        if (newChatName) {
-            showGlobalNotification(newChatName, newMessages);
-            
-            if (GLOBAL_CONFIG.SOUND_ENABLED) {
-                playNotificationSound();
-            }
-            
-            if (GLOBAL_CONFIG.DESKTOP_NOTIFICATIONS && globalState.notificationsEnabled && !document.hasFocus()) {
-                showDesktopNotification(newChatName, `${newMessages} mensaje${newMessages > 1 ? 's' : ''} nuevo${newMessages > 1 ? 's' : ''}`);
-            }
-            
-            // Vibración en móviles
-            if ('vibrate' in navigator) {
-                navigator.vibrate([200, 100, 200]);
-            }
+        if (GLOBAL_CONFIG.SOUND_ENABLED) {
+            playNotificationSound();
+        }
+        
+        if (GLOBAL_CONFIG.DESKTOP_NOTIFICATIONS && globalState.notificationsEnabled && !document.hasFocus()) {
+            const totalNew = newMessagesInChats.reduce((sum, item) => sum + item.count, 0);
+            showDesktopNotification('Chat', totalNew + ' mensaje' + (totalNew > 1 ? 's' : '') + ' nuevo' + (totalNew > 1 ? 's' : ''));
+        }
+        
+        if ('vibrate' in navigator) {
+            navigator.vibrate([200, 100, 200]);
         }
     }
     
-    // Actualizar contador global
-    globalState.totalUnread = newTotalUnread;
-    updateSidebarBadge(newTotalUnread);
-    updatePageTitle(newTotalUnread);
+    if (newMessagesInGroups.length > 0) {
+        newMessagesInGroups.forEach(item => {
+            showGlobalNotification(item.name, item.count, 'group');
+        });
+        
+        if (GLOBAL_CONFIG.SOUND_ENABLED) {
+            playNotificationSound();
+        }
+        
+        if (GLOBAL_CONFIG.DESKTOP_NOTIFICATIONS && globalState.notificationsEnabled && !document.hasFocus()) {
+            const totalNew = newMessagesInGroups.reduce((sum, item) => sum + item.count, 0);
+            showDesktopNotification('Grupo', totalNew + ' mensaje' + (totalNew > 1 ? 's' : '') + ' nuevo' + (totalNew > 1 ? 's' : ''));
+        }
+        
+        if ('vibrate' in navigator) {
+            navigator.vibrate([200, 100, 200]);
+        }
+    }
+    
+    const chatsChanged = newUnreadChats !== globalState.totalUnreadChats;
+    const groupsChanged = newUnreadGroups !== globalState.totalUnreadGroups;
+    
+    if (chatsChanged) {
+        globalState.totalUnreadChats = newUnreadChats;
+        updateSidebarBadge('chats', newUnreadChats);
+    }
+    
+    if (groupsChanged) {
+        globalState.totalUnreadGroups = newUnreadGroups;
+        updateSidebarBadge('groups', newUnreadGroups);
+    }
+    
+    const totalUnread = newUnreadChats + newUnreadGroups;
+    updatePageTitle(totalUnread);
 }
 
 // ============ NOTIFICACIONES VISUALES ============
 
-function showGlobalNotification(chatName, count) {
+function showGlobalNotification(chatName, count, type) {
     let indicator = document.getElementById('globalMessageIndicator');
     
     if (!indicator) {
         indicator = document.createElement('div');
         indicator.id = 'globalMessageIndicator';
-        indicator.style.cssText = `
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
-            font-size: 15px;
-            font-weight: 500;
-            z-index: 10000;
-            opacity: 0;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            max-width: 320px;
-            cursor: pointer;
-        `;
+        indicator.style.cssText = 'position: fixed; top: 80px; right: 20px; background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4); font-size: 15px; font-weight: 500; z-index: 10000; opacity: 0; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; max-width: 350px; cursor: pointer;';
         document.body.appendChild(indicator);
-        
-        indicator.addEventListener('click', () => {
-            window.location.href = '?page=chats';
-        });
     }
     
-    const messageText = count > 1 
-        ? `${count} mensajes nuevos de ${chatName}` 
-        : `Nuevo mensaje de ${chatName}`;
+    const typeIcon = type === 'group' ? 'fa-users' : 'fa-user';
+    const typeLabel = type === 'group' ? 'Grupo' : 'Chat';
+    const targetPage = type === 'group' ? 'groups' : 'chats';
     
-    indicator.innerHTML = `
-        <i class="fab fa-whatsapp" style="font-size: 24px;"></i>
-        <div style="flex: 1;">
-            <div style="font-weight: 600;">${escapeHtml(messageText)}</div>
-            <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">
-                ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-            <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">
-                Click para abrir
-            </div>
-        </div>
-    `;
+    const messageText = count > 1 ? count + ' mensajes nuevos' : 'Nuevo mensaje';
+    
+    indicator.innerHTML = '<i class="fas ' + typeIcon + '" style="font-size: 24px;"></i><div style="flex: 1;"><div style="font-weight: 700; font-size: 13px; opacity: 0.9; margin-bottom: 3px;">' + typeLabel + '</div><div style="font-weight: 600;">' + escapeHtml(chatName) + '</div><div style="font-size: 13px; opacity: 0.9; margin-top: 2px;">' + messageText + '</div><div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' · Click para abrir</div></div>';
+    
+    indicator.onclick = function() {
+        window.location.href = '?page=' + targetPage;
+    };
     
     indicator.style.transform = 'translateX(400px)';
-    setTimeout(() => {
+    setTimeout(function() {
         indicator.style.opacity = '1';
         indicator.style.transform = 'translateX(0)';
     }, 10);
     
-    setTimeout(() => {
+    setTimeout(function() {
         indicator.style.opacity = '0';
         indicator.style.transform = 'translateX(400px)';
     }, 6000);
 }
 
-function showDesktopNotification(chatName, messagePreview) {
+function showDesktopNotification(type, messagePreview) {
     if (!globalState.notificationsEnabled || document.hasFocus()) return;
     
     try {
-        const notification = new Notification(`WhatsApp - ${chatName}`, {
+        const notification = new Notification('WhatsApp - ' + type, {
             body: messagePreview,
             icon: 'assets/img/whatsapp-icon.png',
             badge: 'assets/img/badge-icon.png',
@@ -1486,11 +1494,12 @@ function showDesktopNotification(chatName, messagePreview) {
         
         notification.onclick = function() {
             window.focus();
-            window.location.href = '?page=chats';
+            const targetPage = type === 'Grupo' ? 'groups' : 'chats';
+            window.location.href = '?page=' + targetPage;
             notification.close();
         };
         
-        setTimeout(() => notification.close(), 8000);
+        setTimeout(function() { notification.close(); }, 8000);
     } catch (e) {
         console.error('Error en notificación de escritorio:', e);
     }
@@ -1498,36 +1507,37 @@ function showDesktopNotification(chatName, messagePreview) {
 
 // ============ ACTUALIZAR UI ============
 
-function updateSidebarBadge(count) {
-    const chatsLink = document.querySelector('.sidebar-nav a[href*="chats"]');
-    if (!chatsLink) return;
+function updateSidebarBadge(pageType, count) {
+    const link = document.querySelector('.sidebar-nav a[href*="page=' + pageType + '"]');
+    if (!link) {
+        console.warn('⚠️ No se encontró el link de ' + pageType + ' en el sidebar');
+        return;
+    }
     
-    let badge = chatsLink.querySelector('.badge');
+    let badge = link.querySelector('.badge');
     
     if (count > 0) {
         if (badge) {
-            badge.textContent = count;
+            if (parseInt(badge.textContent) !== count) {
+                badge.textContent = count;
+                badge.style.animation = 'badgePulse 0.6s ease';
+            }
         } else {
             badge = document.createElement('span');
             badge.className = 'badge';
             badge.textContent = count;
-            chatsLink.appendChild(badge);
-            
-            // Animar entrada
+            link.appendChild(badge);
             badge.style.animation = 'badgeAppear 0.4s ease';
         }
-        
-        // Animar cambio
-        badge.style.animation = 'badgePulse 0.6s ease';
     } else if (badge) {
         badge.style.animation = 'badgeDisappear 0.3s ease';
-        setTimeout(() => badge.remove(), 300);
+        setTimeout(function() { badge.remove(); }, 300);
     }
 }
 
 function updatePageTitle(count) {
     if (count > 0) {
-        document.title = `(${count}) WhatsApp Dashboard`;
+        document.title = '(' + count + ') WhatsApp Dashboard';
     } else {
         document.title = 'WhatsApp Dashboard - Cellcom Technology';
     }
@@ -1540,17 +1550,14 @@ function playNotificationSound() {
         const audio = new Audio('assets/sounds/new-message.mp3');
         audio.volume = 0.4;
         
-        // Intentar reproducir
         const playPromise = audio.play();
         
         if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                // Si falla por autoplay bloqueado, intentar después de interacción
-                console.log('Sonido bloqueado por navegador. Requiere interacción del usuario primero.');
+            playPromise.catch(function(error) {
+                console.log('Sonido bloqueado por navegador');
                 
-                // Habilitar sonido después del primer click
                 document.addEventListener('click', function enableSound() {
-                    audio.play().catch(() => {});
+                    audio.play().catch(function() {});
                     document.removeEventListener('click', enableSound);
                 }, { once: true });
             });
@@ -1571,40 +1578,17 @@ function escapeHtml(text) {
 // ============ ANIMACIONES CSS ============
 
 const globalNotificationStyles = document.createElement('style');
-globalNotificationStyles.textContent = `
-@keyframes badgePulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.3); }
-}
-
-@keyframes badgeAppear {
-    0% { transform: scale(0); opacity: 0; }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes badgeDisappear {
-    0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(0); opacity: 0; }
-}
-
-.badge {
-    background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
-    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
-    margin-left: 8px;
-}
-`;
+globalNotificationStyles.textContent = '@keyframes badgePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } } @keyframes badgeAppear { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } } @keyframes badgeDisappear { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0); opacity: 0; } } .badge { background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%); box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4); margin-left: 8px; }';
 document.head.appendChild(globalNotificationStyles);
 
 // ============ INICIALIZACIÓN ============
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     initGlobalNotifications();
     console.log('🚀 Sistema de notificaciones global cargado');
 });
 
-// Pausar cuando la pestaña no está activa (opcional)
-document.addEventListener('visibilitychange', () => {
+document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
         console.log('👁️ Pestaña visible, verificando mensajes...');
         setTimeout(checkForNewMessages, 1000);

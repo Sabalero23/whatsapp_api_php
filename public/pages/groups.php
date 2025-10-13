@@ -374,7 +374,6 @@ if ($selectedGroup) {
     opacity: 0.2;
 }
 
-/* Participantes */
 .participant-item {
     display: flex;
     align-items: center;
@@ -461,7 +460,6 @@ if ($selectedGroup) {
     color: #f44336;
 }
 
-/* Tabs */
 .tabs {
     display: flex;
     border-bottom: 1px solid var(--group-border);
@@ -499,7 +497,6 @@ if ($selectedGroup) {
     display: block;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .groups-container {
         grid-template-columns: 1fr;
@@ -513,6 +510,28 @@ if ($selectedGroup) {
     .group-content {
         display: <?= $selectedGroup ? 'flex' : 'none' ?>;
     }
+}
+
+.group-unread-badge {
+    background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 0.75em;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    animation: badgePulse 0.6s ease;
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.2); }
 }
 </style>
 
@@ -542,9 +561,21 @@ if ($selectedGroup) {
                 </div>
             <?php else: ?>
                 <?php foreach ($groupsData['groups'] as $group): ?>
+                    <?php
+                    // Obtener contador de no leídos para este grupo
+                    $groupUnreadCount = 0;
+                    try {
+                        // Obtener el chat completo para verificar unreadCount
+                        $groupDetail = $whatsapp->getChat($group['id']);
+                        $groupUnreadCount = $groupDetail['unreadCount'] ?? 0;
+                    } catch (Exception $e) {
+                        error_log("Error obteniendo unreadCount del grupo {$group['id']}: " . $e->getMessage());
+                    }
+                    ?>
                     <a href="?page=groups&group=<?= urlencode($group['id']) ?>" 
                        class="group-item <?= $selectedGroup === $group['id'] ? 'active' : '' ?>"
-                       data-group-id="<?= htmlspecialchars($group['id']) ?>">
+                       data-group-id="<?= htmlspecialchars($group['id']) ?>"
+                       data-unread="<?= $groupUnreadCount ?>">
                         <div class="group-avatar">
                             <i class="fas fa-users"></i>
                         </div>
@@ -554,6 +585,9 @@ if ($selectedGroup) {
                                 <?= $group['participants'] ?? 0 ?> participantes
                             </div>
                         </div>
+                        <?php if ($groupUnreadCount > 0): ?>
+                            <span class="group-unread-badge"><?= $groupUnreadCount ?></span>
+                        <?php endif; ?>
                     </a>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -1135,7 +1169,6 @@ async function sendGroupMessage() {
     }
 }
 
-
 // ===== ACTUALIZAR MENSAJES =====
 async function updateGroupMessages() {
     if (!selectedGroupId) return;
@@ -1550,4 +1583,58 @@ window.addEventListener('beforeunload', () => {
         clearInterval(groupUpdateInterval);
     }
 });
+
+// ===== ACTUALIZAR CONTADORES DE NO LEÍDOS EN GRUPOS =====
+async function updateGroupUnreadCounts() {
+    try {
+        const response = await fetch('api/get-chats.php?t=' + Date.now());
+        const data = await response.json();
+        
+        if (!data.success || !data.chats) return;
+        
+        // Filtrar solo grupos
+        const groups = data.chats.filter(chat => chat.isGroup);
+        
+        // Actualizar cada grupo en la lista
+        groups.forEach(group => {
+            const groupItem = document.querySelector(`.group-item[data-group-id="${group.id}"]`);
+            if (!groupItem) return;
+            
+            const unreadCount = group.unreadCount || 0;
+            const currentUnread = parseInt(groupItem.dataset.unread) || 0;
+            
+            // Solo actualizar si cambió
+            if (unreadCount !== currentUnread) {
+                groupItem.dataset.unread = unreadCount;
+                
+                let badge = groupItem.querySelector('.group-unread-badge');
+                
+                if (unreadCount > 0) {
+                    if (badge) {
+                        badge.textContent = unreadCount;
+                        badge.style.animation = 'badgePulse 0.6s ease';
+                    } else {
+                        badge = document.createElement('span');
+                        badge.className = 'group-unread-badge';
+                        badge.textContent = unreadCount;
+                        groupItem.appendChild(badge);
+                    }
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+        });
+        
+        console.log('✅ Contadores de grupos actualizados');
+        
+    } catch (error) {
+        console.error('Error actualizando contadores de grupos:', error);
+    }
+}
+
+// Actualizar contadores cada 5 segundos
+setInterval(updateGroupUnreadCounts, 5000);
+
+// Actualizar inmediatamente al cargar
+setTimeout(updateGroupUnreadCounts, 2000);
 </script>
