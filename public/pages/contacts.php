@@ -49,71 +49,78 @@ $totalPages = ceil($total / $limit);
 
 <div class="card">
     <div class="card-body">
-        <div style="margin-bottom: 20px;">
-            <input type="text" id="searchContacts" placeholder="Buscar contacto..." 
+        <div style="margin-bottom: 20px; position: relative;">
+            <input type="text" id="searchContacts" placeholder="Buscar contacto por nombre, número, empresa..." 
                    class="form-control" style="max-width: 400px;">
+            <div id="searchLoader" style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
         </div>
         
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Número</th>
-                    <th>Empresa</th>
-                    <th>Etiquetas</th>
-                    <th>Último Contacto</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($contacts as $contact): ?>
-                    <tr class="contact-item">
-                        <td>
-                            <strong><?= htmlspecialchars($contact['nombre'] ?? $contact['numero']) ?></strong>
-                            <?php if ($contact['favorito']): ?>
-                                <i class="fas fa-star" style="color: gold;"></i>
-                            <?php endif; ?>
-                        </td>
-                        <td><?= htmlspecialchars($contact['numero']) ?></td>
-                        <td><?= htmlspecialchars($contact['empresa'] ?? '-') ?></td>
-                        <td>
-                            <?php if ($contact['etiquetas']): ?>
-                                <?php foreach (explode(',', $contact['etiquetas']) as $tag): ?>
-                                    <span class="badge"><?= htmlspecialchars(trim($tag)) ?></span>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                -
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <?= $contact['ultimo_contacto'] ? 
-                                date('d/m/Y', strtotime($contact['ultimo_contacto'])) : '-' ?>
-                        </td>
-                        <td>
-    <button class="btn btn-sm btn-icon" 
-            onclick="sendMessageToContact('<?= htmlspecialchars($contact['numero']) ?>')">
-        <i class="fas fa-comment"></i>
-    </button>
-    
-    <?php if ($canEdit): ?>
-        <button class="btn btn-sm btn-icon" onclick="editContact(<?= $contact['id'] ?>)">
-            <i class="fas fa-edit"></i>
-        </button>
-    <?php endif; ?>
-    
-    <?php if ($canDelete): ?>
-        <button class="btn btn-sm btn-icon" onclick="deleteContact(<?= $contact['id'] ?>)">
-            <i class="fas fa-trash"></i>
-        </button>
-    <?php endif; ?>
-</td>
+        <div id="contactsTableContainer">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Número</th>
+                        <th>Empresa</th>
+                        <th>Etiquetas</th>
+                        <th>Último Contacto</th>
+                        <th>Acciones</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="contactsTableBody">
+                    <?php foreach ($contacts as $contact): ?>
+                        <tr class="contact-item" data-nombre="<?= htmlspecialchars($contact['nombre'] ?? '') ?>" 
+                            data-numero="<?= htmlspecialchars($contact['numero']) ?>"
+                            data-empresa="<?= htmlspecialchars($contact['empresa'] ?? '') ?>">
+                            <td>
+                                <strong><?= htmlspecialchars($contact['nombre'] ?? $contact['numero']) ?></strong>
+                                <?php if ($contact['favorito']): ?>
+                                    <i class="fas fa-star" style="color: gold;"></i>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= htmlspecialchars($contact['numero']) ?></td>
+                            <td><?= htmlspecialchars($contact['empresa'] ?? '-') ?></td>
+                            <td>
+                                <?php if ($contact['etiquetas']): ?>
+                                    <?php foreach (explode(',', $contact['etiquetas']) as $tag): ?>
+                                        <span class="badge"><?= htmlspecialchars(trim($tag)) ?></span>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?= $contact['ultimo_contacto'] ? 
+                                    date('d/m/Y', strtotime($contact['ultimo_contacto'])) : '-' ?>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-icon" 
+                                        onclick="sendMessageToContact('<?= htmlspecialchars($contact['numero']) ?>')">
+                                    <i class="fas fa-comment"></i>
+                                </button>
+                                
+                                <?php if ($canEdit): ?>
+                                    <button class="btn btn-sm btn-icon" onclick="editContact(<?= $contact['id'] ?>)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                <?php endif; ?>
+                                
+                                <?php if ($canDelete): ?>
+                                    <button class="btn btn-sm btn-icon" onclick="deleteContact(<?= $contact['id'] ?>)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
         
         <?php if ($totalPages > 1): ?>
-            <div style="margin-top: 20px; text-align: center;">
+            <div id="paginationContainer" style="margin-top: 20px; text-align: center;">
                 <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                     <a href="?page=contacts&p=<?= $i ?>" 
                        class="btn btn-sm <?= $i == $page_num ? 'btn-primary' : '' ?>">
@@ -169,6 +176,153 @@ $totalPages = ceil($total / $limit);
 </div>
 
 <script>
+let searchTimeout = null;
+let allContacts = [];
+
+// Inicializar búsqueda
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchContacts');
+    if (searchInput) {
+        // Guardar todos los contactos para búsqueda rápida
+        allContacts = Array.from(document.querySelectorAll('.contact-item')).map(row => ({
+            element: row,
+            nombre: row.dataset.nombre?.toLowerCase() || '',
+            numero: row.dataset.numero?.toLowerCase() || '',
+            empresa: row.dataset.empresa?.toLowerCase() || ''
+        }));
+        
+        searchInput.addEventListener('input', handleSearch);
+    }
+});
+
+// Manejar búsqueda
+function handleSearch(e) {
+    const query = e.target.value.trim().toLowerCase();
+    const loader = document.getElementById('searchLoader');
+    const pagination = document.getElementById('paginationContainer');
+    
+    clearTimeout(searchTimeout);
+    
+    // Mostrar loader
+    if (query.length > 0) {
+        loader.style.display = 'block';
+    }
+    
+    searchTimeout = setTimeout(() => {
+        if (query.length === 0) {
+            // Mostrar todos los contactos
+            allContacts.forEach(contact => {
+                contact.element.style.display = '';
+            });
+            if (pagination) pagination.style.display = 'block';
+            loader.style.display = 'none';
+            return;
+        }
+        
+        if (query.length < 2) {
+            loader.style.display = 'none';
+            return;
+        }
+        
+        // Ocultar paginación durante búsqueda
+        if (pagination) pagination.style.display = 'none';
+        
+        // Buscar en contactos cargados
+        let foundCount = 0;
+        allContacts.forEach(contact => {
+            const matches = contact.nombre.includes(query) || 
+                          contact.numero.includes(query) || 
+                          contact.empresa.includes(query);
+            
+            if (matches) {
+                contact.element.style.display = '';
+                foundCount++;
+            } else {
+                contact.element.style.display = 'none';
+            }
+        });
+        
+        // Si no hay resultados en la página actual, buscar en servidor
+        if (foundCount === 0 && query.length >= 2) {
+            searchInServer(query);
+        } else {
+            loader.style.display = 'none';
+        }
+    }, 300);
+}
+
+// Buscar en servidor
+async function searchInServer(query) {
+    const loader = document.getElementById('searchLoader');
+    const tbody = document.getElementById('contactsTableBody');
+    
+    try {
+        loader.style.display = 'block';
+        
+        const response = await fetch(`api/contacts.php?search=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        if (data.success && data.contacts) {
+            if (data.contacts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: var(--gray);">
+                            <i class="fas fa-search" style="font-size: 2em; margin-bottom: 10px; display: block; opacity: 0.3;"></i>
+                            No se encontraron contactos que coincidan con "${query}"
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = data.contacts.map(contact => `
+                    <tr class="contact-item">
+                        <td>
+                            <strong>${escapeHtml(contact.nombre || contact.numero)}</strong>
+                            ${contact.favorito ? '<i class="fas fa-star" style="color: gold;"></i>' : ''}
+                        </td>
+                        <td>${escapeHtml(contact.numero)}</td>
+                        <td>${escapeHtml(contact.empresa || '-')}</td>
+                        <td>
+                            ${contact.etiquetas ? 
+                                contact.etiquetas.split(',').map(tag => 
+                                    `<span class="badge">${escapeHtml(tag.trim())}</span>`
+                                ).join(' ') : '-'
+                            }
+                        </td>
+                        <td>
+                            ${contact.ultimo_contacto ? 
+                                new Date(contact.ultimo_contacto).toLocaleDateString('es-AR') : '-'}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-icon" onclick="sendMessageToContact('${escapeHtml(contact.numero)}')">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <?php if ($canEdit): ?>
+                            <button class="btn btn-sm btn-icon" onclick="editContact(${contact.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <?php endif; ?>
+                            <?php if ($canDelete): ?>
+                            <button class="btn btn-sm btn-icon" onclick="deleteContact(${contact.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                showNotification(`${data.contacts.length} contacto(s) encontrado(s)`, 'success');
+            }
+        } else {
+            showNotification('Error al buscar contactos', 'error');
+        }
+    } catch (error) {
+        console.error('Error en búsqueda:', error);
+        showNotification('Error de conexión', 'error');
+    } finally {
+        loader.style.display = 'none';
+    }
+}
+
 async function saveContact(event) {
     event.preventDefault();
     const form = event.target;
@@ -238,7 +392,7 @@ async function syncContacts() {
         const result = await response.json();
         
         if (result.success) {
-            showNotification(`${result.count} contactos sincronizados`, 'success');
+            showNotification(`${result.total || result.count} contactos sincronizados`, 'success');
             setTimeout(() => location.reload(), 2000);
         } else {
             showNotification('Error: ' + result.error, 'error');
@@ -248,10 +402,8 @@ async function syncContacts() {
     }
 }
 
-// Función para editar contacto (agregar al script de contacts.php)
 async function editContact(id) {
     try {
-        // Obtener datos del contacto
         const response = await fetch(`api/contacts.php?id=${id}`);
         const data = await response.json();
         
@@ -262,10 +414,10 @@ async function editContact(id) {
         
         const contact = data.contact;
         
-        // Crear modal de edición
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.id = 'modalEditContact';
+        modal.style.display = 'flex';
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
@@ -312,7 +464,6 @@ async function editContact(id) {
         `;
         
         document.body.appendChild(modal);
-        modal.style.display = 'flex';
         
     } catch (error) {
         console.error('Error:', error);
@@ -350,11 +501,21 @@ async function updateContact(event, id) {
 }
 
 function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function importContacts() {
+    showNotification('Función de importación en desarrollo', 'info');
 }
 </script>
+
+
 
 <style>
 .page-header {
