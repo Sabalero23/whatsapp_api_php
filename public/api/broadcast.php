@@ -105,7 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Si es envío inmediato, procesar en background
                 if ($action === 'send') {
-                    // Iniciar envío
                     processBroadcast($difusionId, $input['delay'] ?? 2);
                 }
                 
@@ -114,6 +113,106 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'id' => $difusionId,
                     'message' => $action === 'send' ? 'Difusión iniciada' : 'Borrador guardado'
                 ]);
+                break;
+                
+            case 'resend':
+                // Reenviar difusión basada en una anterior
+                if (!isset($input['difusion_base_id'])) {
+                    echo json_encode(['success' => false, 'error' => 'ID de difusión base requerido']);
+                    break;
+                }
+                
+                // Obtener difusión original
+                $difusionBase = $db->fetch(
+                    "SELECT * FROM difusiones WHERE id = ?",
+                    [$input['difusion_base_id']]
+                );
+                
+                if (!$difusionBase) {
+                    echo json_encode(['success' => false, 'error' => 'Difusión base no encontrada']);
+                    break;
+                }
+                
+                // Obtener destinatarios originales si no se proporcionan nuevos
+                $destinatarios = $input['destinatarios'] ?? [];
+                
+                if (empty($destinatarios)) {
+                    $destOriginal = $db->fetchAll(
+                        "SELECT numero FROM difusion_destinatarios WHERE difusion_id = ?",
+                        [$input['difusion_base_id']]
+                    );
+                    $destinatarios = array_column($destOriginal, 'numero');
+                }
+                
+                // Limpiar formato @c.us para almacenar solo números
+                $destinatarios = array_map(function($n) {
+                    return str_replace(['@c.us', '@g.us'], '', trim($n));
+                }, $destinatarios);
+                
+                // Crear nueva difusión
+                $nombre = $input['nombre'] ?? $difusionBase['nombre'] . ' (Reenvío)';
+                $mensaje = $input['mensaje'] ?? $difusionBase['mensaje'];
+                
+                $nuevaDifusionId = $db->insert('difusiones', [
+                    'nombre' => $nombre,
+                    'mensaje' => $mensaje,
+                    'tipo' => 'text',
+                    'estado' => 'enviando',
+                    'total_destinatarios' => count($destinatarios),
+                    'creado_por' => $_SESSION['username'] ?? 'sistema'
+                ]);
+                
+                // Insertar destinatarios
+                foreach ($destinatarios as $numero) {
+                    if (!str_contains($numero, '@')) {
+                        $numero = $numero . '@c.us';
+                    }
+                    
+                    $db->insert('difusion_destinatarios', [
+                        'difusion_id' => $nuevaDifusionId,
+                        'numero' => $numero,
+                        'estado' => 'pendiente'
+                    ]);
+                }
+                
+                // Log
+                $db->insert('logs', [
+                    'usuario_id' => $_SESSION['user_id'],
+                    'accion' => 'Reenviar difusión',
+                    'descripcion' => "Nueva difusión: $nombre - " . count($destinatarios) . " destinatarios",
+                    'ip' => $_SERVER['REMOTE_ADDR']
+                ]);
+                
+                // Procesar envío
+                processBroadcast($nuevaDifusionId, $input['delay'] ?? 2);
+                
+                echo json_encode([
+                    'success' => true, 
+                    'id' => $nuevaDifusionId,
+                    'message' => 'Difusión reenviada'
+                ]);
+                break;
+                
+            case 'search_contacts':
+                // Buscar contactos por nombre o número
+                $query = $input['query'] ?? '';
+                
+                if (strlen($query) < 2) {
+                    echo json_encode(['success' => true, 'contacts' => []]);
+                    break;
+                }
+                
+                $contacts = $db->fetchAll(
+                    "SELECT id, numero, nombre, empresa, etiquetas 
+                    FROM contactos 
+                    WHERE (nombre LIKE ? OR numero LIKE ? OR empresa LIKE ?) 
+                    AND bloqueado = 0
+                    ORDER BY nombre ASC 
+                    LIMIT 20",
+                    ["%$query%", "%$query%", "%$query%"]
+                );
+                
+                echo json_encode(['success' => true, 'contacts' => $contacts]);
                 break;
                 
             case 'delete':
@@ -230,12 +329,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'destinatarios' => $destinatarios
             ]);
         } else {
-            // Listar todas las difusiones
+            // Listar todas las difusiones con paginación
+            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+            $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+            
             $difusiones = $db->fetchAll(
-                "SELECT * FROM difusiones ORDER BY fecha_creacion DESC LIMIT 50"
+                "SELECT * FROM difusiones ORDER BY fecha_creacion DESC LIMIT ? OFFSET ?",
+                [$limit, $offset]
             );
             
-            echo json_encode(['success' => true, 'difusiones' => $difusiones]);
+            $total = $db->fetch("SELECT COUNT(*) as total FROM difusiones")['total'];
+            
+            echo json_encode([
+                'success' => true, 
+                'difusiones' => $difusiones,
+                'total' => $total
+            ]);
         }
     } catch (Exception $e) {
         error_log('Error en broadcast.php GET: ' . $e->getMessage());
